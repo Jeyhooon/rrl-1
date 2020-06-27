@@ -1,6 +1,6 @@
 import gym
 from simulation.src.gym_envs.mujoco.mujoco_env import MujocoEnv
-from simulation.src.robot_setup.Mujoco_Scene_Object import MujocoPrimitiveObject, MujocoObject
+from simulation.src.robot_setup.Mujoco_Scene_Object import MujocoPrimitiveObject
 import numpy as np
 from simulation.src.robot_setup.Mujoco_Panda_Sim_Interface import Scene
 from simulation.src.gym_envs.mujoco.ik_controller import IkController
@@ -16,8 +16,8 @@ WHITE = [1, 1, 1, 1]
 
 class KickingEnv(MujocoEnv):
     """
-    Kicking task: The agent is asked to kick a ball into a goal. He gets more reward the closer the box gets to the goal
-    and a huge reward when he scores.
+    Kicking task: The agent is asked to kick a ball into a goal. He gets more reward the closer the ball gets to the
+    goal and a huge reward when he scores.
     """
     def __init__(self,
                  max_steps=2000,
@@ -161,6 +161,7 @@ class KickingEnv(MujocoEnv):
         ball = MujocoPrimitiveObject(obj_pos=[0.5, 0.0, 0.35],
                                      obj_name='ball',
                                      mass=0.01,
+                                     geom_type='sphere',
                                      geom_rgba=WHITE,
                                      geom_size=[0.015, 0.015, 0.015])
 
@@ -208,6 +209,9 @@ class KickingEnv(MujocoEnv):
         if self.randomize_ball:
             x_pos = np.random.uniform(0.35, 0.5, 1)
             y_pos = np.random.uniform(-0.1, 0.1, 1)
+            while abs(x_pos - 0.4) < 0.04 or abs(y_pos - 0.0) < 0.04:
+                x_pos = np.random.uniform(0.35, 0.5, 1)
+                y_pos = np.random.uniform(-0.1, 0.1, 1)
             qpos[30] = x_pos
             qpos[31] = y_pos
         if self.randomize_goalie:
@@ -271,7 +275,7 @@ class KickingEnv(MujocoEnv):
     def _termination(self):
         _, _, ball_pos = self._parse_obs()
 
-        # TODO: add check if ball stopped moving
+        # TODO: add check if ball is out of reach and not moving
         # goal scored
         if ball_pos[0] > 1.3:
             self.terminated = True
@@ -295,8 +299,9 @@ class KickingEnv(MujocoEnv):
         else:
             closest_goal_point = [1.3, ball_pos[1], 0.35]
         distance_ball_goal = goal_distance(np.array(ball_pos), np.array(closest_goal_point))
+        distance_ball_table = abs(ball_pos[2] - 0.41)
 
-        reward = -distance_player_tcp - 5 * distance_ball_goal
+        reward = -distance_player_tcp - 5 * distance_ball_goal - 10 * distance_ball_table
 
         if ball_pos[0] > 1.3:
             print('success')

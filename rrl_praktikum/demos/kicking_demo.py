@@ -2,7 +2,7 @@ from simulation.src.robot_setup.Mujoco_Scene_Object import MujocoPrimitiveObject
 from simulation.src.robot_setup import Robots
 from simulation.src.robot_setup.Mujoco_Panda_Sim_Interface import Scene
 
-from envs.kicking_env import KickingEnv
+from rrl_praktikum.envs.kicking_env import KickingEnv
 
 RED = [1, 0, 0, 1]
 BLUE = [0, 0, 1, 1]
@@ -34,19 +34,21 @@ def run_simple_demo():
     ball1 = MujocoPrimitiveObject(obj_pos=[0.5, 0.0, 0.35],
                                   obj_name='ball1',
                                   mass=0.01,
+                                  geom_type='sphere',
                                   geom_rgba=WHITE,
                                   geom_size=[0.015, 0.015, 0.015])
 
     ball2 = MujocoPrimitiveObject(obj_pos=[0.45, 0.07, 0.35],
                                   obj_name='ball2',
                                   mass=0.01,
+                                  geom_type='sphere',
                                   geom_rgba=WHITE,
                                   geom_size=[0.015, 0.015, 0.015])
 
     goal_red = _goal_posts(1.3, RED, 'red')
     boundaries = _boundaries()
 
-    object_list = [table, cue_blue, cue_red, ball1, ball2] + goal_red + boundaries
+    object_list = [table, cue_red, ball1, ball2] + goal_red + boundaries
     scene = Scene(object_list)
     robot = Robots.MuJoCoRobot(scene, gravity_comp=True, num_DoF=7)
 
@@ -58,19 +60,19 @@ def run_simple_demo():
     home_orientation = robot.current_c_quat.copy()
 
     # grab cue
-    robot.gotoCartPositionAndQuat([0.4, 0.0, 0.5], [0, 1, 0, 0], duration=duration)
-    robot.set_gripper_width = 0.04
-    robot.gotoCartPositionAndQuat([0.4, 0.0, 0.41], [0, 1, 0, 0], duration=duration)
-    robot.set_gripper_width = 0.0
+    # robot.gotoCartPositionAndQuat([0.4, 0.0, 0.5], [0, 1, 0, 0], duration=duration)
+    # robot.set_gripper_width = 0.04
+    # robot.gotoCartPositionAndQuat([0.4, 0.0, 0.41], [0, 1, 0, 0], duration=duration)
+    # robot.set_gripper_width = 0.0
 
     # shoot ball1
-    robot.gotoCartPositionAndQuat([0.4, 0.0, 0.42], [0, 1, 0, 0], duration=duration)
-    robot.gotoCartPositionAndQuat([0.5, 0.004, 0.42], [0, 1, 0, 0], duration=0.18)
+    robot.gotoCartPositionAndQuat([0.4, -0.02, 0.42], [0, 1, 0, 0], duration=duration)
+    robot.gotoCartPositionAndQuat([0.5, 0.03, 0.41], [0, 1, 0, 0], duration=0.18)
 
     # shoot ball2
     robot.gotoCartPositionAndQuat([0.35, 0.0, 0.42], [0, 1, 0, 0], duration=duration)
-    robot.gotoCartPositionAndQuat([0.35, 0.07, 0.42], [0, 1, 0, 0], duration=duration)
-    robot.gotoCartPositionAndQuat([0.45, 0.055, 0.42], [0, 1, 0, 0], duration=0.19)
+    robot.gotoCartPositionAndQuat([0.35, 0.09, 0.42], [0, 1, 0, 0], duration=duration)
+    robot.gotoCartPositionAndQuat([0.45, 0.04, 0.41], [0, 1, 0, 0], duration=0.19)
 
     # go home
     robot.gotoCartPositionAndQuat(home_position, home_orientation, duration=duration)
@@ -116,7 +118,8 @@ def _boundaries():
 
 def _print_step_result(obs, rewards, done, step):
     print(f"Step: {step}")
-    print(f"player_pos: {obs[15:18]}, goalie_pos:{obs[18:21]}, ball_pos: {obs[21:24]}")
+    print(f"tcp_pos: {obs[18:21]}")
+    print(f"player_pos: {obs[21:24]}, goalie_pos:{obs[24:27]}, ball_pos: {obs[27:]}")
     print(f'Reward: {rewards}')
     print(f"done: {done}\n\n")
 
@@ -147,10 +150,10 @@ def run_env_demo():
         obs, rewards, done, _ = env.step(action_3)
         _print_step_result(obs, rewards, done, env.env_step_counter)
 
-    action_4 = [player_pos[0], player_pos[1], 0.5, 0.0]
-    while _distance_gt(env.agent.tcp_pos[2], 0.5):
-        obs, rewards, done, _ = env.step(action_4)
-        _print_step_result(obs, rewards, done, env.env_step_counter)
+    # action_4 = [player_pos[0], player_pos[1], 0.5, 0.0]
+    # while _distance_gt(env.agent.tcp_pos[2], 0.5):
+    #     obs, rewards, done, _ = env.step(action_4)
+    #     _print_step_result(obs, rewards, done, env.env_step_counter)
 
     # go to shooting position
     action_4 = [ball_pos[0] - 0.1, ball_pos[1], 0.42, 0.0]
@@ -171,5 +174,5 @@ def run_env_demo():
 
 
 if __name__ == '__main__':
-    run_env_demo()
-    # run_simple_demo()
+    # run_env_demo()
+    run_simple_demo()
