@@ -24,3 +24,6 @@ dmypy.json
 
 # IDE project files
 .idea/
+
+# Training logs
+logs/
