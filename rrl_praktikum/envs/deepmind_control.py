@@ -2,16 +2,15 @@ from typing import Tuple
 
 import gym
 import numpy as np
-from dm_control import suite
+from dm_control import manipulation
 
 
 class DeepMindControl:
-    def __init__(self, name: str, size: Tuple[int, int] = (64, 64), camera=None):
+    def __init__(self, name: str, size: Tuple[int, int] = (64, 64), camera=0):
         domain, task = name.split('_', 1)
-        self._env = suite.load(domain, task)
+        # self._env = suite.load(domain, task)
+        self._env = manipulation.load(environment_name=name)
         self._size = size
-        if camera is None:
-            camera = dict(quadruped=2).get(domain, 0)
         self._camera = camera
 
     @property

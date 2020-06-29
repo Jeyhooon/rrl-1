@@ -7,7 +7,7 @@ import tensorflow as tf
 from tensorflow.keras.mixed_precision import experimental as prec
 
 from rrl_praktikum.envs.wrappers.async_wrapper import Async
-from rrl_praktikum.envs.dm_control import DeepMindControl
+from rrl_praktikum.envs.deepmind_control import DeepMindControl
 from rrl_praktikum.envs.wrappers.action_repeat import ActionRepeat
 from rrl_praktikum.envs.wrappers.collect import Collect
 from rrl_praktikum.envs.wrappers.normalize_actions import NormalizeActions
@@ -28,9 +28,9 @@ def define_config():
     config.log_scalars = True
     config.log_images = True
     config.gpu_growth = True
-    config.precision = 16
+    config.precision = 32
     # Environment.
-    config.task = 'dmc_walker_walk'
+    config.task = 'dmc_reach_site_vision'
     config.envs = 1
     config.parallel = 'none'
     config.action_repeat = 2

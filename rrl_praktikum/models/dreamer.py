@@ -26,7 +26,7 @@ class Dreamer(Module):
         self._writer = writer
         self._random = np.random.RandomState(config.seed)
         with tf.device('cpu:0'):
-            self._step = tf.Variable(count_steps(datadir, config), dtype=tf.int64)
+            self._step = tf.Variable(tools.count_steps(datadir, config), dtype=tf.int64)
         self._should_pretrain = tools.Once()
         self._should_train = tools.Every(config.train_every)
         self._should_log = tools.Every(config.log_every)
@@ -85,7 +85,7 @@ class Dreamer(Module):
 
     @tf.function()
     def train(self, data, log_images=False):
-        self._strategy.experimental_run_v2(self._train, args=(data, log_images))
+        self._strategy.run(self._train, args=(data, log_images))
 
     def _train(self, data, log_images):
         with tf.GradientTape() as model_tape:
