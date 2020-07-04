@@ -28,7 +28,7 @@ def define_config():
     config.log_scalars = True
     config.log_images = True
     config.gpu_growth = True
-    config.precision = 32
+    config.precision = 16
     # Environment.
     config.task = 'dmc_reach_site_vision'
     config.envs = 1
