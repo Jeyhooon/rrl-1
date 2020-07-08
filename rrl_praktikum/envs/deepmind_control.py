@@ -2,14 +2,14 @@ from typing import Tuple
 
 import gym
 import numpy as np
-from dm_control import manipulation
+from dm_control import manipulation, suite
 
 
 class DeepMindControl:
     def __init__(self, name: str, size: Tuple[int, int] = (64, 64), camera=0):
         domain, task = name.split('_', 1)
-        # self._env = suite.load(domain, task)
-        self._env = manipulation.load(environment_name=name)
+        self._env = suite.load(domain, task)
+        # self._env = manipulation.load(environment_name=name)
         self._size = size
         self._camera = camera
 
