@@ -30,7 +30,7 @@ def define_config():
     config.gpu_growth = True
     config.precision = 16
     # Environment.
-    config.task = 'dmc_reach_site_vision'
+    config.task = 'dmc_reach_duplo_vision'
     config.envs = 1
     config.parallel = 'none'
     config.action_repeat = 2
