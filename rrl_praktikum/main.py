@@ -6,6 +6,7 @@ import pathlib
 import tensorflow as tf
 from tensorflow.keras.mixed_precision import experimental as prec
 
+from rrl_praktikum.envs.panda_base_env import PandaBaseEnv
 from rrl_praktikum.envs.wrappers.async_wrapper import Async
 from rrl_praktikum.envs.deepmind_control import DeepMindControl
 from rrl_praktikum.envs.wrappers.action_repeat import ActionRepeat
@@ -15,6 +16,10 @@ from rrl_praktikum.envs.wrappers.reward_obs import RewardObs
 from rrl_praktikum.envs.wrappers.time_limit import TimeLimit
 from rrl_praktikum.models.dreamer import Dreamer
 from rrl_praktikum.utilities import tools, summaries, episodes
+from rrl_praktikum.envs.kick_env import KickEnv
+from rrl_praktikum.envs.reach_env import ReachEnv
+
+_KNOWN_TASKS = [ReachEnv, KickEnv]
 
 
 def define_config():
@@ -98,10 +103,12 @@ def make_env(config, writer, prefix, datadir, store):
     suite, task = config.task.split('_', 1)
     if suite == 'dmc':
         env = DeepMindControl(task)
-        env = ActionRepeat(env, config.action_repeat)
-        env = NormalizeActions(env)
+    elif suite == 'panda':
+        env = _resolve_panda_env(task_name=task)
     else:
         raise NotImplementedError(suite)
+    env = ActionRepeat(env, config.action_repeat)
+    env = NormalizeActions(env)
     env = TimeLimit(env, config.time_limit / config.action_repeat)
     callbacks = []
     if store:
@@ -110,6 +117,14 @@ def make_env(config, writer, prefix, datadir, store):
     env = Collect(env, callbacks, config.precision)
     env = RewardObs(env)
     return env
+
+
+def _resolve_panda_env(task_name):
+    env_name = f'{task_name.capitalize()}Env'
+    for task in _KNOWN_TASKS:
+        if task.__name__ == env_name:
+            return task()
+    raise NotImplementedError(f'Task {task_name} is not implemented for Panda.')
 
 
 def main(config):
@@ -141,7 +156,6 @@ def main(config):
     random_agent = lambda o, d, _: ([actspace.sample() for _ in d], None)
     tools.simulate(random_agent, train_envs, prefill / config.action_repeat)
     writer.flush()
-
     # Train and regularly evaluate the agent.
     step = tools.count_steps(datadir, config)
     print(f'Simulating agent for {config.steps-step} steps.')

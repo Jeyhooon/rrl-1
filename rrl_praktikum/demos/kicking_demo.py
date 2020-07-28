@@ -3,6 +3,7 @@ from simulation.src.robot_setup import Robots
 from simulation.src.robot_setup.Mujoco_Panda_Sim_Interface import Scene
 
 from rrl_praktikum.envs.kicking_env import KickingEnv
+from rrl_praktikum.envs.reach_env import ReachEnv
 
 RED = [1, 0, 0, 1]
 BLUE = [0, 0, 1, 1]
@@ -129,50 +130,53 @@ def _distance_gt(x, y):
 
 
 def run_env_demo():
-    env = KickingEnv(max_steps=6000)
-    obs = env.reset()
-    player_pos, goalie_pos, ball_pos = obs[21:24], obs[24:27], obs[27:]
+    env = ReachEnv()
+
+    for _ in range(2):
+        obs, rewards, done, _ = env.step(env.action_space.sample())
+        print(obs)
+    # player_pos, goalie_pos, ball_pos = obs[21:24], obs[24:27], obs[27:]
 
     # go above player
-    action_1 = [player_pos[0], player_pos[1], 0.5, 0.04]
-    while _distance_gt(env.agent.tcp_pos[0], player_pos[0]) or _distance_gt(env.agent.tcp_pos[1], player_pos[1]):
-        obs, rewards, done, _ = env.step(action_1)
-        _print_step_result(obs, rewards, done, env.env_step_counter)
-
-    # grab player
-    action_2 = [player_pos[0], player_pos[1], 0.41, 0.04]
-    while _distance_gt(env.agent.tcp_pos[2], 0.41):
-        obs, rewards, done, _ = env.step(action_2)
-        _print_step_result(obs, rewards, done, env.env_step_counter)
-
-    action_3 = [player_pos[0], player_pos[1], 0.41, 0.0]
-    while _distance_gt(env.agent.panda.gripper_width, 0.0):
-        obs, rewards, done, _ = env.step(action_3)
-        _print_step_result(obs, rewards, done, env.env_step_counter)
-
-    # action_4 = [player_pos[0], player_pos[1], 0.5, 0.0]
-    # while _distance_gt(env.agent.tcp_pos[2], 0.5):
+    # action_1 = [player_pos[0], player_pos[1], 0.5, 0.04]
+    # while _distance_gt(env.agent.tcp_pos[0], player_pos[0]) or _distance_gt(env.agent.tcp_pos[1], player_pos[1]):
+    #     obs, rewards, done, _ = env.step(action_1)
+    #     _print_step_result(obs, rewards, done, env.env_step_counter)
+    #
+    # # grab player
+    # action_2 = [player_pos[0], player_pos[1], 0.41, 0.04]
+    # while _distance_gt(env.agent.tcp_pos[2], 0.41):
+    #     obs, rewards, done, _ = env.step(action_2)
+    #     _print_step_result(obs, rewards, done, env.env_step_counter)
+    #
+    # action_3 = [player_pos[0], player_pos[1], 0.41, 0.0]
+    # while _distance_gt(env.agent.panda.gripper_width, 0.0):
+    #     obs, rewards, done, _ = env.step(action_3)
+    #     _print_step_result(obs, rewards, done, env.env_step_counter)
+    #
+    # # action_4 = [player_pos[0], player_pos[1], 0.5, 0.0]
+    # # while _distance_gt(env.agent.tcp_pos[2], 0.5):
+    # #     obs, rewards, done, _ = env.step(action_4)
+    # #     _print_step_result(obs, rewards, done, env.env_step_counter)
+    #
+    # # go to shooting position
+    # action_4 = [ball_pos[0] - 0.1, ball_pos[1], 0.42, 0.0]
+    # while _distance_gt(env.agent.tcp_pos[0], ball_pos[0] - 0.1) or _distance_gt(env.agent.tcp_pos[1], ball_pos[1]):
     #     obs, rewards, done, _ = env.step(action_4)
     #     _print_step_result(obs, rewards, done, env.env_step_counter)
-
-    # go to shooting position
-    action_4 = [ball_pos[0] - 0.1, ball_pos[1], 0.42, 0.0]
-    while _distance_gt(env.agent.tcp_pos[0], ball_pos[0] - 0.1) or _distance_gt(env.agent.tcp_pos[1], ball_pos[1]):
-        obs, rewards, done, _ = env.step(action_4)
-        _print_step_result(obs, rewards, done, env.env_step_counter)
-
-    # shoot
-    action_5 = [ball_pos[0], ball_pos[1], 0.42, 0.0]
-    while _distance_gt(env.agent.tcp_pos[0], ball_pos[0]):
-        obs, rewards, done, _ = env.step(action_5)
-        _print_step_result(obs, rewards, done, env.env_step_counter)
-
-    # wait for ball to stop moving
-    while not done:
-        obs, rewards, done, _ = env.step(action_5)
-        _print_step_result(obs, rewards, done, env.env_step_counter)
+    #
+    # # shoot
+    # action_5 = [ball_pos[0], ball_pos[1], 0.42, 0.0]
+    # while _distance_gt(env.agent.tcp_pos[0], ball_pos[0]):
+    #     obs, rewards, done, _ = env.step(action_5)
+    #     _print_step_result(obs, rewards, done, env.env_step_counter)
+    #
+    # # wait for ball to stop moving
+    # while not done:
+    #     obs, rewards, done, _ = env.step(action_5)
+    #     _print_step_result(obs, rewards, done, env.env_step_counter)
 
 
 if __name__ == '__main__':
-    # run_env_demo()
-    run_simple_demo()
+    run_env_demo()
+    # run_simple_demo()

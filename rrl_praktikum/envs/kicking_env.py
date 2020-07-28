@@ -1,17 +1,21 @@
 import gym
 from simulation.src.gym_envs.mujoco.mujoco_env import MujocoEnv
-from simulation.src.robot_setup.Mujoco_Scene_Object import MujocoPrimitiveObject
+from simulation.src.robot_setup.Mujoco_Camera import Camera
+from simulation.src.robot_setup.Mujoco_Scene_Object import MujocoPrimitiveObject, MujocoCamera, MujocoObject
 import numpy as np
 from simulation.src.robot_setup.Mujoco_Panda_Sim_Interface import Scene
 from simulation.src.gym_envs.mujoco.ik_controller import IkController
 from simulation.src.gym_envs.mujoco.panda_mujoco import PandaInverseKinematics, PandaTorque, PandaJointControl
 from simulation.src.gym_envs.mujoco.utils import goal_distance
 
+from rrl_praktikum.utilities.tools import AttrDict
 
 RED = [1, 0, 0, 1]
 BLUE = [0, 0, 1, 1]
 BLACK = [0, 0, 0, 1]
 WHITE = [1, 1, 1, 1]
+
+Z_OFFSET = 0.2
 
 
 class KickingEnv(MujocoEnv):
@@ -21,7 +25,7 @@ class KickingEnv(MujocoEnv):
     """
     def __init__(self,
                  max_steps=2000,
-                 control='ik',
+                 control='velocity',
                  kv=None,
                  kv_scale=1,
                  kp=None,
@@ -79,14 +83,17 @@ class KickingEnv(MujocoEnv):
             render:
                 Determines if the scene should be visualized.
         """
-
         super().__init__(max_steps=max_steps)
         self.include_objects = include_objects
         self.randomize_ball = randomize_ball
         self.randomize_goalie = randomize_goalie
 
-        objects = self._scene_objects()
+        objects = self._scene_objects_new()
+        camera = MujocoCamera(cam_name='rgb_front', cam_pos=[2.0, 0.0, 1.0], cam_euler=[0, 1.2, 1.57],
+                              cam_mode='fixed', fovy=25)
+
         self.scene = Scene(control=control,
+                           camera_list=[camera],
                            dt=dt,
                            object_list=objects,
                            render=render,
@@ -141,10 +148,22 @@ class KickingEnv(MujocoEnv):
 
         self.reset()
 
+    def _scene_objects_new(self):
+        tray = MujocoObject(object_name='tray',
+                            pos=[0.5, 0, Z_OFFSET],
+                            quat=[0, 0, 0, 0])
+        ball = MujocoPrimitiveObject(obj_pos=[0.5, 0.0, Z_OFFSET + 0.2],
+                                     obj_name='ball',
+                                     mass=0.01,
+                                     geom_type='sphere',
+                                     geom_rgba=RED,
+                                     geom_size=[0.015, 0.015, 0.015])
+        return [tray, ball]
+
     def _scene_objects(self):
-        table = MujocoPrimitiveObject(obj_pos=[0.9, 0.0, 0.2],
+        table = MujocoPrimitiveObject(obj_pos=[0.85, 0.0, 0.2],
                                       obj_name="table",
-                                      geom_size=[0.6, 0.5, 0.2],
+                                      geom_size=[0.5, 0.5, 0.2],
                                       mass=2000,
                                       geom_material="table_mat")
 
@@ -205,18 +224,18 @@ class KickingEnv(MujocoEnv):
         qpos = self.scene.init_qpos
         qvel = self.scene.init_qvel
 
-        # randomize x and y pos of ball and goalie
-        if self.randomize_ball:
-            x_pos = np.random.uniform(0.35, 0.5, 1)
-            y_pos = np.random.uniform(-0.1, 0.1, 1)
-            while abs(x_pos - 0.4) < 0.04 or abs(y_pos - 0.0) < 0.04:
-                x_pos = np.random.uniform(0.35, 0.5, 1)
-                y_pos = np.random.uniform(-0.1, 0.1, 1)
-            qpos[30] = x_pos
-            qpos[31] = y_pos
-        if self.randomize_goalie:
-            y_pos = np.random.uniform(-0.07, 0.07, 1)
-            qpos[24] = y_pos
+        # # randomize x and y pos of ball and goalie
+        # if self.randomize_ball:
+        #     x_pos = np.random.uniform(0.35, 0.5, 1)
+        #     y_pos = np.random.uniform(-0.1, 0.1, 1)
+        #     while abs(x_pos - 0.4) < 0.04 or abs(y_pos - 0.0) < 0.04:
+        #         x_pos = np.random.uniform(0.35, 0.5, 1)
+        #         y_pos = np.random.uniform(-0.1, 0.1, 1)
+        #     qpos[30] = x_pos
+        #     qpos[31] = y_pos
+        # if self.randomize_goalie:
+        #     y_pos = np.random.uniform(-0.07, 0.07, 1)
+        #     qpos[24] = y_pos
 
         self.agent.set_state(qpos, qvel)
         self.agent.panda.receiveState()
@@ -232,78 +251,84 @@ class KickingEnv(MujocoEnv):
         done = self._termination()
         reward = self._reward()
         self.env_step_counter += 1
-        return np.array(self._observation), reward, done, {}
+        return self._observation, reward, done, {}
 
     def _get_obs(self):
-        self.agent.panda.receiveState()
+        # self.agent.panda.receiveState()
+        #
+        # # current_coord_velocity = self.panda.current_c_vel
+        # # current_coord_orientation = self.panda.current_c_pos
+        # # current_coord_orientation_velocity = self.panda.current_c_quat_vel
+        # current_joint_position = self.agent.panda.current_j_pos
+        # current_joint_velocity = self.agent.panda.current_j_vel
+        # current_finger_position = self.agent.panda.current_fing_pos
+        # current_finger_velocity = self.agent.panda.current_fing_vel
+        # # current_load = np.array(self.agent.panda.current_load)
+        # current_coord_position = self.agent.panda.current_c_pos
+        #
+        # player_pos = self.scene.sim.data.qpos[16:19]
+        # goalie_pos = self.scene.sim.data.qpos[23:26]
+        # ball_pos = self.scene.sim.data.qpos[30:33]
+        # # ball_vel = self.scene.sim.data.qvel[30]
+        #
+        # obs = np.concatenate([current_joint_position,
+        #                       current_joint_velocity,
+        #                       current_finger_position,
+        #                       current_finger_velocity,
+        #                       current_coord_position,
+        #                       player_pos,
+        #                       goalie_pos,
+        #                       ball_pos])
 
-        # current_coord_velocity = self.panda.current_c_vel
-        # current_coord_orientation = self.panda.current_c_pos
-        # current_coord_orientation_velocity = self.panda.current_c_quat_vel
-        current_joint_position = self.agent.panda.current_j_pos
-        current_joint_velocity = self.agent.panda.current_j_vel
-        current_finger_position = self.agent.panda.current_fing_pos
-        current_finger_velocity = self.agent.panda.current_fing_vel
-        # current_load = np.array(self.agent.panda.current_load)
-        current_coord_position = self.agent.panda.current_c_pos
-
-        player_pos = self.scene.sim.data.qpos[16:19]
-        goalie_pos = self.scene.sim.data.qpos[23:26]
-        ball_pos = self.scene.sim.data.qpos[30:33]
-        ball_vel = self.scene.sim.data.qvel[30]
-
-        obs = np.concatenate([current_joint_position,
-                              current_joint_velocity,
-                              current_finger_position,
-                              current_finger_velocity,
-                              current_coord_position,
-                              player_pos,
-                              goalie_pos,
-                              ball_pos])
+        obs = self.scene.get_rgb_image_from_cam(cam_name='rgb_front', width=64, height=64)
         return obs
+        # return np.array([0])
 
     def get_observation_dimension(self):
         return self._get_obs().size
 
     def _parse_obs(self):
-        obs = self._observation
-        player_pos = obs[21:24]
-        goalie_pos = obs[24:27]
-        ball_pos = obs[27:]
-        return player_pos, goalie_pos, ball_pos
+        # obs = self._observation
+        # player_pos = obs[21:24]
+        # goalie_pos = obs[24:27]
+        # ball_pos = obs[27:]
+        # return player_pos, goalie_pos, ball_pos
+
+        return self._observation
 
     def _termination(self):
-        _, _, ball_pos = self._parse_obs()
-
-        # TODO: add check if ball is out of reach and not moving
-        # goal scored
-        if ball_pos[0] > 1.3:
-            self.terminated = True
-
-        if self.terminated or self.env_step_counter > self.max_steps:
-            self.terminated = 0
-            self.env_step_counter = 0
-            self.episode += 1
-            self._observation = self._get_obs()
-            return True
+        # _, _, ball_pos = self._parse_obs()
+        #
+        # # TODO: add check if ball is out of reach and not moving
+        # # goal scored
+        # if ball_pos[0] > 1.3:
+        #     self.terminated = True
+        #
+        # if self.terminated or self.env_step_counter > self.max_steps:
+        #     self.terminated = 0
+        #     self.env_step_counter = 0
+        #     self.episode += 1
+        #     self._observation = self._get_obs()
+        #     return True
         return False
 
     def _reward(self):
-        player_pos, goalie_pos, ball_pos = self._parse_obs()
-        end_eff_coords = self.agent.tcp_pos
-        distance_player_tcp = goal_distance(np.array(end_eff_coords), np.array(player_pos))
-        if ball_pos[1] < -0.995:
-            closest_goal_point = [1.3, -0.995, 0.35]
-        elif ball_pos[1] > 0.995:
-            closest_goal_point = [1.3, 0.995, 0.35]
-        else:
-            closest_goal_point = [1.3, ball_pos[1], 0.35]
-        distance_ball_goal = goal_distance(np.array(ball_pos), np.array(closest_goal_point))
-        distance_ball_table = abs(ball_pos[2] - 0.41)
-
-        reward = -distance_player_tcp - 5 * distance_ball_goal - 10 * distance_ball_table
-
-        if ball_pos[0] > 1.3:
-            print('success')
-            reward = np.float32(1000.0)
-        return reward
+        # player_pos, goalie_pos, ball_pos = self._parse_obs()
+        # end_eff_coords = self.agent.tcp_pos
+        # distance_player_tcp = goal_distance(np.array(end_eff_coords), np.array(player_pos))
+        # if ball_pos[1] < -0.995:
+        #     closest_goal_point = [1.3, -0.995, 0.35]
+        # elif ball_pos[1] > 0.995:
+        #     closest_goal_point = [1.3, 0.995, 0.35]
+        # else:
+        #     closest_goal_point = [1.3, ball_pos[1], 0.35]
+        # distance_ball_goal = goal_distance(np.array(ball_pos), np.array(closest_goal_point))
+        # distance_ball_table = abs(ball_pos[2] - 0.41)
+        #
+        # reward = -distance_player_tcp - 5 * distance_ball_goal - 10 * distance_ball_table
+        #
+        # if ball_pos[0] > 1.3:
+        #     print('success')
+        #     reward = np.float32(1000.0)
+        # return reward
+        return 0
