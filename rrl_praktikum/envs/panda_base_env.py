@@ -7,10 +7,10 @@ from simulation.src.robot_setup.Mujoco_Scene_Object import MujocoCamera
 
 
 class PandaBaseEnv(MujocoEnv):
-    def __init__(self, max_steps=2000, control_timesteps=5, dt=0.001):
+    def __init__(self, max_steps=2000, control_timesteps=3, dt=0.001):
         super().__init__(max_steps=max_steps)
-        camera = MujocoCamera(cam_name='rgb_front', cam_pos=[2.0, 0.0, 1.2], cam_euler=[0, 1.1, 1.57],
-                              cam_mode='fixed', fovy=25)
+        camera = MujocoCamera(cam_name='rgb_front', cam_pos=[1.7, 0.0, 1.5], cam_euler=[0, 0.9, 1.57],
+                              cam_mode='fixed', fovy=35)
         objects = self._scene_objects()
         self.scene = Scene(control='velocity',
                            camera_list=[camera],
