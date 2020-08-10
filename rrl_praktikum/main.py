@@ -38,8 +38,8 @@ def define_config():
     config.task = 'dmc_reach_duplo_vision'
     config.envs = 1
     config.parallel = 'none'
-    config.action_repeat = 2
-    config.time_limit = 1000
+    config.action_repeat = 10
+    config.time_limit = 20000
     config.prefill = 5000
     config.eval_noise = 0.0
     config.clip_rewards = 'none'
@@ -59,7 +59,7 @@ def define_config():
     # Training.
     config.batch_size = 50
     config.batch_length = 50
-    config.train_every = 1000
+    config.train_every = 2000
     config.train_steps = 100
     config.pretrain = 100
     config.model_lr = 6e-4
