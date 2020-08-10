@@ -39,7 +39,7 @@ class PandaBaseEnv(MujocoEnv):
         return self.render()
 
     def render(self, mode='rgb_array'):
-        return self.scene.get_rgb_image_from_cam(cam_name='rgb_front', width=64, height=64)
+        return self.scene.get_rgb_image_from_cam(cam_name='rgb_front', width=64, height=64)[::-1, :, :]
 
     def step(self, action):
         self.agent.apply_action(action)
