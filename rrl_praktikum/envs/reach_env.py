@@ -54,13 +54,18 @@ class ReachEnv(PandaBaseEnv):
 
     def _scene_objects(self):
         z_offset = 0.2
-        tray = MujocoObject(object_name='tray',
-                            pos=[0.5, 0, z_offset],
-                            quat=[0, 0, 0, 0])
-        obj1 = MujocoPrimitiveObject(obj_name='box',
-                                     obj_pos=[0.5, 0, z_offset + 0.2],
-                                     geom_rgba=[1, 0, 0, 1])
-        return [tray, obj1]
+        table = MujocoPrimitiveObject(obj_pos=[0.85, 0.0, z_offset],
+                                      obj_name="table",
+                                      geom_size=[0.5, 0.5, 0.2],
+                                      mass=2000,
+                                      geom_material="table_mat")
+        ball = MujocoPrimitiveObject(obj_pos=[0.5, 0.0, 0.35],
+                                     obj_name='ball',
+                                     mass=0.01,
+                                     geom_type='sphere',
+                                     geom_rgba=[1, 0, 0, 1],
+                                     geom_size=[0.015, 0.015, 0.015])
+        return [table, ball]
 
 
 def goal_distance(obj_a, obj_b):
