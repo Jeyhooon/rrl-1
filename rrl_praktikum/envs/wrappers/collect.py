@@ -23,8 +23,9 @@ class Collect:
             episode = {k: [t[k] for t in self._episode] for k in self._episode[0]}
             episode = {k: self._convert(v) for k, v in episode.items()}
             info['episode'] = episode
-            for callback in self._callbacks:
-                callback(episode)
+            if len(self._episode) >= 50:
+                for callback in self._callbacks:
+                    callback(episode)
         return obs, reward, done, info
 
     def reset(self):
