@@ -13,8 +13,8 @@ class ReachEnv(PandaBaseEnv):
         qvel = self.scene.init_qvel
 
         # randomize x and y pos of box
-        x_pos = np.random.uniform(0.25, 0.55, 1)
-        y_pos = np.random.uniform(-0.4, 0.4, 1)
+        x_pos = np.random.uniform(0.45, 0.55, 1)
+        y_pos = np.random.uniform(-0.05, 0.05, 1)
         qpos[9] = x_pos
         qpos[10] = y_pos
 

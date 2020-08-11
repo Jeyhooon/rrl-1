@@ -1,6 +1,7 @@
 from matplotlib import pyplot as plt
 
 from rrl_praktikum.envs.kick_env import KickEnv
+from rrl_praktikum.envs.reach_env import ReachEnv
 
 if __name__ == '__main__':
     env = KickEnv()
