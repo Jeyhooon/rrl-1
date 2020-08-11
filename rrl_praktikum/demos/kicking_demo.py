@@ -120,27 +120,13 @@ def _boundaries():
     return [left_boundary, right_boundary, left_back_boundary, right_back_boundary]
 
 
-def _print_step_result(obs, rewards, done, step):
-    print(f"Step: {step}")
-    print(f"tcp_pos: {obs[18:21]}")
-    print(f"player_pos: {obs[21:24]}, goalie_pos:{obs[24:27]}, ball_pos: {obs[27:]}")
-    print(f'Reward: {rewards}')
-    print(f"done: {done}\n\n")
-
-
-def _distance_gt(x, y):
-    return abs(x - y) > EPSILON
-
-
-def run_env_demo():
-    env = PushEnv()
-
-    obs, rewards, done, _ = env.step(env.action_space.sample())
-
-    # plt.imshow(obs['image'])
-    # plt.show()
+# def _print_step_result(obs, rewards, done, step):
+#     print(f"Step: {step}")
+#     print(f"tcp_pos: {obs[18:21]}")
+#     print(f"player_pos: {obs[21:24]}, goalie_pos:{obs[24:27]}, ball_pos: {obs[27:]}")
+#     print(f'Reward: {rewards}')
+#     print(f"done: {done}\n\n")
 
 
 if __name__ == '__main__':
-    run_env_demo()
-    # run_simple_demo()
+    run_simple_demo()
