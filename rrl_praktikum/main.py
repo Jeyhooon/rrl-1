@@ -39,7 +39,8 @@ def define_config():
     config.envs = 1
     config.parallel = 'none'
     config.action_repeat = 1
-    config.time_limit = 499
+    config.control_timesteps = 15
+    config.time_limit = 99
     config.prefill = 5000
     config.eval_noise = 0.0
     config.clip_rewards = 'none'
@@ -104,7 +105,8 @@ def make_env(config, writer, prefix, datadir, store):
     if suite == 'dmc':
         env = DeepMindControl(task)
     elif suite == 'panda':
-        env = _resolve_panda_env(task_name=task)
+        kwargs = {'control_timesteps': config.control_timesteps}
+        env = _resolve_panda_env(task_name=task, **kwargs)
     else:
         raise NotImplementedError(suite)
     env = ActionRepeat(env, config.action_repeat)
@@ -119,11 +121,11 @@ def make_env(config, writer, prefix, datadir, store):
     return env
 
 
-def _resolve_panda_env(task_name):
+def _resolve_panda_env(task_name, **kwargs):
     env_name = f'{task_name.capitalize()}Env'
     for task in _KNOWN_TASKS:
         if task.__name__ == env_name:
-            return task()
+            return task(**kwargs)
     raise NotImplementedError(f'Task {task_name} is not implemented for Panda.')
 
 

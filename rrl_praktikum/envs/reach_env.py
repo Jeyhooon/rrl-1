@@ -5,6 +5,9 @@ from rrl_praktikum.envs.panda_base_env import PandaBaseEnv
 
 
 class ReachEnv(PandaBaseEnv):
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+
     def reset(self):
         self.scene.sim.reset()
 
