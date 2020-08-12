@@ -10,7 +10,7 @@ class PandaBaseEnv(MujocoEnv):
     def __init__(self, max_steps=2000, control_timesteps=3, dt=0.001):
         super().__init__(max_steps=max_steps)
         camera = MujocoCamera(cam_name='rgb_front', cam_pos=[1.7, 0.0, 1.5], cam_euler=[0, 0.9, 1.57],
-                              cam_mode='fixed', fovy=35)
+                              cam_mode='fixed', fovy=40)
         objects = self._scene_objects()
         self.scene = Scene(control='velocity',
                            camera_list=[camera],
@@ -53,7 +53,13 @@ class PandaBaseEnv(MujocoEnv):
         raise NotImplementedError
 
     def _termination(self):
-        raise NotImplementedError
+        if self.terminated or self.env_step_counter > self.max_steps:
+            self.terminated = 0
+            self.env_step_counter = 0
+            self.episode += 1
+            self._observation = self._get_obs()
+            return True
+        return False
 
     def _reward(self):
         raise NotImplementedError

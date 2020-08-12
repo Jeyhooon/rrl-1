@@ -5,7 +5,7 @@ from rrl_praktikum.envs.push_env import PushEnv
 from rrl_praktikum.envs.reach_env import ReachEnv
 
 if __name__ == '__main__':
-    env = ReachEnv()
+    env = PushEnv()
 
     obs, rewards, done, _ = env.step(env.action_space.sample())
 

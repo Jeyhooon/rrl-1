@@ -1,5 +1,5 @@
 import numpy as np
-from simulation.src.robot_setup.Mujoco_Scene_Object import MujocoPrimitiveObject
+from simulation.src.robot_setup.Mujoco_Scene_Object import MujocoPrimitiveObject, MujocoObject
 
 from rrl_praktikum.envs.panda_base_env import PandaBaseEnv
 
@@ -12,53 +12,26 @@ Z_OFFSET = 0.2
 
 
 class KickEnv(PandaBaseEnv):
+    """
+    Kick the reachable box as close to the unreachable box as possible.
+    """
+    def __init__(self, reward_type='distance_only', **kwargs):
+        super().__init__(**kwargs)
+        self.reward_type = reward_type
+        self.initial_distance = 0.5220153
+
     def _scene_objects(self):
-        table = MujocoPrimitiveObject(obj_pos=[0.85, 0.0, 0.1],
-                                      obj_name="table",
-                                      geom_size=[0.5, 0.5, 0.2],
-                                      mass=2000,
-                                      geom_material="table_mat")
-
-        goalie = MujocoPrimitiveObject(obj_pos=[1.3, 0.0, 0.35],
-                                       obj_name='goalie',
-                                       mass=1,
-                                       geom_rgba=BLUE,
-                                       geom_size=[0.015, 0.015, 0.015])
-
-        ball = MujocoPrimitiveObject(obj_pos=[0.5, 0.0, 0.35],
-                                     obj_name='ball',
-                                     mass=0.01,
-                                     geom_type='sphere',
-                                     geom_rgba=RED,
-                                     geom_size=[0.015, 0.015, 0.015])
-
-        left_goal_post = MujocoPrimitiveObject(obj_pos=[1.3, 0.1, 0.35],
-                                               obj_name='left_goal_post',
-                                               geom_rgba=BLUE,
-                                               geom_size=[0.005, 0.005, 0.02])
-        right_goal_post = MujocoPrimitiveObject(obj_pos=[1.3, -0.1, 0.35],
-                                                obj_name='right_goal_post',
-                                                geom_rgba=BLUE,
-                                                geom_size=[0.005, 0.005, 0.02])
-        left_boundary = MujocoPrimitiveObject(obj_pos=[0.9, 0.2, 0.35],
-                                              obj_name='left_boundary',
-                                              geom_rgba=BLACK,
-                                              geom_size=[0.4, 0.005, 0.02])
-        left_back_boundary = MujocoPrimitiveObject(obj_pos=[1.3, 0.15, 0.35],
-                                                   obj_name='left_back_boundary',
-                                                   geom_rgba=BLACK,
-                                                   geom_size=[0.005, 0.05, 0.02])
-        right_boundary = MujocoPrimitiveObject(obj_pos=[0.9, -0.2, 0.35],
-                                               obj_name='right_boundary',
-                                               geom_rgba=BLACK,
-                                               geom_size=[0.4, 0.005, 0.02])
-        right_back_boundary = MujocoPrimitiveObject(obj_pos=[1.3, -0.15, 0.35],
-                                                    obj_name='right_back_boundary',
-                                                    geom_rgba=BLACK,
-                                                    geom_size=[0.005, 0.05, 0.02])
-
-        return [table, goalie, ball, left_goal_post, right_goal_post, left_boundary, right_boundary,
-                left_back_boundary, right_back_boundary]
+        z_offset = 0.2
+        tray = MujocoObject(object_name='tray',
+                            pos=[0.5, 0, z_offset],
+                            quat=[0, 0, 0, 0])
+        red_box = MujocoPrimitiveObject(obj_name='red_box',
+                                        obj_pos=[0.55, 0, z_offset + 0.2],
+                                        geom_rgba=[1, 0, 0, 1])
+        blue_box = MujocoPrimitiveObject(obj_name='blue_box',
+                                         obj_pos=[0.7, 0.5, z_offset + 0.2],
+                                         geom_rgba=[0, 0, 1, 1])
+        return [tray, red_box, blue_box]
 
     def reset(self):
         self.scene.sim.reset()
@@ -67,24 +40,31 @@ class KickEnv(PandaBaseEnv):
         qpos = self.scene.init_qpos
         qvel = self.scene.init_qvel
 
-        # randomize x and y pos of ball and goalie
-        # x_pos = np.random.uniform(0.35, 0.5, 1)
-        # y_pos = np.random.uniform(-0.1, 0.1, 1)
-        # while abs(x_pos - 0.4) < 0.04 or abs(y_pos - 0.0) < 0.04:
-        #     x_pos = np.random.uniform(0.35, 0.5, 1)
-        #     y_pos = np.random.uniform(-0.1, 0.1, 1)
-        # qpos[30] = x_pos
-        # qpos[31] = y_pos
-        # y_pos = np.random.uniform(-0.07, 0.07, 1)
-        # qpos[24] = y_pos
+        # randomize x and y pos of boxes
+        x_pos_red = np.random.uniform(0.45, 0.65, 1)
+        y_pos_red = np.random.uniform(-0.2, 0.2, 1)
+        x_pos_blue = np.random.uniform(0.6, 0.7, 1)
+        y_pos_blue = np.random.uniform(0.4, 0.5, 1) * np.where(np.random.binomial(1, 0.5), 1, -1)
 
+        self.initial_distance = box_distance(x_pos_red, y_pos_red, x_pos_blue, y_pos_blue)
+        qpos[9] = x_pos_red
+        qpos[10] = y_pos_red
+        qpos[16] = x_pos_blue
+        qpos[17] = y_pos_blue
         self.agent.set_state(qpos, qvel)
         self.agent.panda.receiveState()
 
         return self._get_obs()
 
-    def _termination(self):
-        return False
-
     def _reward(self):
-        return 0
+        red_box_pos = self.scene.sim.data.qpos[9:12]
+        blue_box_pos = self.scene.sim.data.qpos[16:19]
+        current_distance = box_distance(red_box_pos[0], red_box_pos[1], blue_box_pos[0], blue_box_pos[1])
+        if self.reward_type == 'distance_only':
+            return 100 * self.initial_distance / current_distance
+        else:
+            raise NotImplementedError
+
+
+def box_distance(x_pos_red, y_pos_red, x_pos_blue, y_pos_blue):
+    return np.linalg.norm(np.array([x_pos_red, y_pos_red]) - np.array([x_pos_blue, y_pos_blue]))

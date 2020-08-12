@@ -26,24 +26,6 @@ class ReachEnv(PandaBaseEnv):
 
         return {'image': self._get_obs()}
 
-    def _termination(self):
-        end_eff_pose = self.agent.tcp_pos
-        box_pos = self.scene.sim.data.qpos[9:12]
-
-        # calculate the distance from end effector to object
-        d = goal_distance(np.array(box_pos), np.array(end_eff_pose))
-
-        if d <= 0.03:
-            self.terminated = True
-
-        if self.terminated or self.env_step_counter > self.max_steps:
-            self.terminated = 0
-            self.env_step_counter = 0
-            self.episode += 1
-            self._observation = self._get_obs()
-            return True
-        return False
-
     def _reward(self):
         box_pos = self.scene.sim.data.qpos[9:12]
         end_eff_coords = self.agent.tcp_pos
