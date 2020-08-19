@@ -55,7 +55,7 @@ class PushEnv(PandaBaseEnv):
         blue_box_pos = self.scene.sim.data.qpos[16:19]
         current_distance = box_distance(red_box_pos[0], red_box_pos[1], blue_box_pos[0], blue_box_pos[1])
         if self.reward_type == 'distance_only':
-            return 100 * self.initial_distance / current_distance
+            return 100 * (self.initial_distance - current_distance) / self.initial_distance
         else:
             raise NotImplementedError
 
