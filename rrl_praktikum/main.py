@@ -7,6 +7,7 @@ import tensorflow as tf
 from tensorflow.keras.mixed_precision import experimental as prec
 
 from rrl_praktikum.envs.panda_base_env import PandaBaseEnv
+from rrl_praktikum.envs.push_env import PushEnv
 from rrl_praktikum.envs.wrappers.async_wrapper import Async
 from rrl_praktikum.envs.deepmind_control import DeepMindControl
 from rrl_praktikum.envs.wrappers.action_repeat import ActionRepeat
@@ -19,7 +20,7 @@ from rrl_praktikum.utilities import tools, summaries, episodes
 from rrl_praktikum.envs.kick_env import KickEnv
 from rrl_praktikum.envs.reach_env import ReachEnv
 
-_KNOWN_TASKS = [ReachEnv, KickEnv]
+_KNOWN_TASKS = [ReachEnv, PushEnv, KickEnv]
 
 
 def define_config():
