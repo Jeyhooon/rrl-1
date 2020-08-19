@@ -16,9 +16,9 @@ class KickEnv(PandaBaseEnv):
     Kick the reachable box as close to the unreachable box as possible.
     """
     def __init__(self, reward_type='distance_only', **kwargs):
-        super().__init__(**kwargs)
         self.reward_type = reward_type
         self.initial_distance = 0.5220153
+        super().__init__(**kwargs)
 
     def _scene_objects(self):
         z_offset = 0.2

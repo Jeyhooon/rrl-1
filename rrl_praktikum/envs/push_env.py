@@ -9,11 +9,11 @@ class PushEnv(PandaBaseEnv):
     Push two boxes as close together as possible.
     """
     def __init__(self, mode='easy', reward_type='distance_only', min_distance=0.1, **kwargs):
-        super().__init__(**kwargs)
         self.mode = mode
         self.reward_type = reward_type
         self.min_distance = min_distance
         self.initial_distance = 0.2
+        super().__init__(**kwargs)
 
     def reset(self):
         self.scene.sim.reset()
