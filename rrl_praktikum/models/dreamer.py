@@ -140,8 +140,12 @@ class Dreamer(Module):
 
         if tf.distribute.get_replica_context().replica_id_in_sync_group == 0:
             if self._c.log_scalars:
-                self._scalar_summaries(data, feat, prior_dist, post_dist, likes, div, model_loss, value_loss,
-                                       actor_loss, model_norm, value_norm, actor_norm)
+                if self._c.dynamics_model != 'deterministic':
+                    self._scalar_summaries(data, feat, prior_dist, post_dist, likes, div, model_loss, value_loss,
+                                           actor_loss, model_norm, value_norm, actor_norm)
+                else:
+                    self._scalar_summaries(data, feat, None, None, likes, None, model_loss, value_loss,
+                                           actor_loss, model_norm, value_norm, actor_norm)
             if tf.equal(log_images, True):
                 self._image_summaries(data, embed, image_pred)
 
@@ -221,11 +225,12 @@ class Dreamer(Module):
         self._metrics['model_grad_norm'].update_state(model_norm)
         self._metrics['value_grad_norm'].update_state(value_norm)
         self._metrics['actor_grad_norm'].update_state(actor_norm)
-        self._metrics['prior_ent'].update_state(prior_dist.entropy())
-        self._metrics['post_ent'].update_state(post_dist.entropy())
+        if self._c.dynamics_model != 'deterministic':
+            self._metrics['prior_ent'].update_state(prior_dist.entropy())
+            self._metrics['post_ent'].update_state(post_dist.entropy())
+            self._metrics['div'].update_state(div)
         for name, logprob in likes.items():
             self._metrics[name + '_loss'].update_state(-logprob)
-        self._metrics['div'].update_state(div)
         self._metrics['model_loss'].update_state(model_loss)
         self._metrics['value_loss'].update_state(value_loss)
         self._metrics['actor_loss'].update_state(actor_loss)

@@ -43,7 +43,7 @@ class RecurrentModel(Module):
         return prior
 
     def get_feat(self, state):
-        return tf.expand_dims(state['deter'], -1)
+        return state['deter']
 
     @tf.function
     def obs_step(self, prev_state, prev_action, embed):
@@ -52,11 +52,11 @@ class RecurrentModel(Module):
         x, deter = self._cell(x, [prev_state['deter']])
         deter = deter[0]  # Keras wraps the state in a list.
         state = {'deter': deter}
-        return state, None
+        return state, state
 
     @tf.function
     def img_step(self, prev_state, prev_action):
-        x = tf.expand_dims(prev_action, axis=-1)
+        x = prev_action
         x = self.get('img1', tfkl.Dense, self._hidden_size, self._activation)(x)
         x, deter = self._cell(x, [prev_state['deter']])
         deter = deter[0]  # Keras wraps the state in a list.

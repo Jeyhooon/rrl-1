@@ -45,7 +45,7 @@ class SSM(Module):
         return prior
 
     def get_feat(self, state):
-        return tf.expand_dims(state['stoch'], -1)
+        return state['stoch']
 
     def get_dist(self, state):
         return tfd.MultivariateNormalDiag(state['mean'], state['std'])
@@ -53,7 +53,7 @@ class SSM(Module):
     @tf.function
     def obs_step(self, prev_state, prev_action, embed):
         prior = self.img_step(prev_state, prev_action)
-        x = tf.expand_dims(embed, axis=-1)
+        x = embed
         x = self.get('obs1', tfkl.Dense, self._hidden_size, self._activation)(x)
         x = self.get('obs2', tfkl.Dense, 2 * self._stoch_size, None)(x)
         mean, std = tf.split(x, 2, -1)
