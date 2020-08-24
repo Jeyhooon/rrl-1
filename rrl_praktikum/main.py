@@ -46,6 +46,7 @@ def define_config():
     config.eval_noise = 0.0
     config.clip_rewards = 'none'
     # Model.
+    config.dynamics_model = 'rssm'
     config.deter_size = 200
     config.stoch_size = 30
     config.num_units = 400

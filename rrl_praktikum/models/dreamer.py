@@ -12,7 +12,9 @@ from rrl_praktikum.models.action_decoder import ActionDecoder
 from rrl_praktikum.models.base_module import Module
 from rrl_praktikum.models.conv import ConvDecoder, ConvEncoder
 from rrl_praktikum.models.dense_decoder import DenseDecoder
+from rrl_praktikum.models.recurrent_model import RecurrentModel
 from rrl_praktikum.models.rssm import RSSM
+from rrl_praktikum.models.ssm import SSM
 from rrl_praktikum.utilities.adam import Adam
 from rrl_praktikum.utilities import tools, summaries, episodes
 
@@ -102,11 +104,14 @@ class Dreamer(Module):
                 pcont_target = self._c.discount * data['discount']
                 likes.pcont = tf.reduce_mean(pcont_pred.log_prob(pcont_target))
                 likes.pcont *= self._c.pcont_scale
-            prior_dist = self._dynamics.get_dist(prior)
-            post_dist = self._dynamics.get_dist(post)
-            div = tf.reduce_mean(tfd.kl_divergence(post_dist, prior_dist))
-            div = tf.maximum(div, self._c.free_nats)
-            model_loss = self._c.kl_scale * div - sum(likes.values())
+
+            model_loss = - sum(likes.values())
+            if self._c.dynamics_model != 'deterministic':
+                prior_dist = self._dynamics.get_dist(prior)
+                post_dist = self._dynamics.get_dist(post)
+                div = tf.reduce_mean(tfd.kl_divergence(post_dist, prior_dist))
+                div = tf.maximum(div, self._c.free_nats)
+                model_loss += self._c.kl_scale * div
             model_loss /= float(self._strategy.num_replicas_in_sync)
 
         with tf.GradientTape() as actor_tape:
@@ -147,7 +152,14 @@ class Dreamer(Module):
         cnn_act = acts[self._c.cnn_act]
         act = acts[self._c.dense_act]
         self._encode = ConvEncoder(self._c.cnn_depth, cnn_act)
-        self._dynamics = RSSM(self._c.stoch_size, self._c.deter_size, self._c.deter_size)
+        if self._c.dynamics_model == 'rssm':
+            self._dynamics = RSSM(self._c.stoch_size, self._c.deter_size, self._c.deter_size)
+        elif self._c.dynamics_model == 'stochastic':
+            self._dynamics = SSM(self._c.stoch_size, self._c.deter_size)
+        elif self._c.dynamics_model == 'deterministic':
+            self._dynamics = RecurrentModel(self._c.deter_size, self._c.deter_size)
+        else:
+            raise NotImplementedError(self._c.dynamics_model)
         self._decode = ConvDecoder(self._c.cnn_depth, cnn_act)
         self._reward = DenseDecoder((), 2, self._c.num_units, act=act)
         if self._c.pcont:
