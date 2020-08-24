@@ -27,7 +27,8 @@ class KickEnv(PandaBaseEnv):
                             quat=[0, 0, 0, 0])
         red_box = MujocoPrimitiveObject(obj_name='red_box',
                                         obj_pos=[0.55, 0, z_offset + 0.2],
-                                        geom_rgba=[1, 0, 0, 1])
+                                        geom_rgba=[1, 0, 0, 1],
+                                        geom_friction=[0.001, 0.001, 0.0001])
         blue_box = MujocoPrimitiveObject(obj_name='blue_box',
                                          obj_pos=[0.7, 0.5, z_offset + 0.2],
                                          geom_rgba=[0, 0, 1, 1])
@@ -44,7 +45,7 @@ class KickEnv(PandaBaseEnv):
         x_pos_red = np.random.uniform(0.45, 0.65, 1)
         y_pos_red = np.random.uniform(-0.2, 0.2, 1)
         x_pos_blue = np.random.uniform(0.6, 0.7, 1)
-        y_pos_blue = np.random.uniform(0.4, 0.5, 1) * np.where(np.random.binomial(1, 0.5), 1, -1)
+        y_pos_blue = np.random.uniform(0.4, 0.5, 1)  # * np.where(np.random.binomial(1, 0.5), 1, -1)
 
         self.initial_distance = box_distance(x_pos_red, y_pos_red, x_pos_blue, y_pos_blue)
         qpos[9] = x_pos_red
