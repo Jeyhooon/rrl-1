@@ -53,7 +53,7 @@ class SSM(Module):
     @tf.function
     def obs_step(self, prev_state, prev_action, embed):
         prior = self.img_step(prev_state, prev_action)
-        x = embed
+        x = tf.concat([prior['stoch'], embed], -1)
         x = self.get('obs1', tfkl.Dense, self._hidden_size, self._activation)(x)
         x = self.get('obs2', tfkl.Dense, 2 * self._stoch_size, None)(x)
         mean, std = tf.split(x, 2, -1)
