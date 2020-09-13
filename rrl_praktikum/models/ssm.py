@@ -53,7 +53,7 @@ class SSM(Module):
     @tf.function
     def obs_step(self, prev_state, prev_action, embed):
         prior = self.img_step(prev_state, prev_action)
-        x = tf.concat([prior['stoch'], embed], -1)
+        x = tf.concat([prior['dense_output'], embed], -1)
         x = self.get('obs1', tfkl.Dense, self._hidden_size, self._activation)(x)
         x = self.get('obs2', tfkl.Dense, 2 * self._stoch_size, None)(x)
         mean, std = tf.split(x, 2, -1)
@@ -66,10 +66,10 @@ class SSM(Module):
     def img_step(self, prev_state, prev_action):
         x = tf.concat([prev_state['stoch'], prev_action], -1)
         x = self.get('img1', tfkl.Dense, self._hidden_size, self._activation)(x)
-        x = self.get('img2', tfkl.Dense, self._hidden_size, self._activation)(x)
-        x = self.get('img3', tfkl.Dense, 2 * self._stoch_size, None)(x)
+        dense_output = self.get('img2', tfkl.Dense, self._hidden_size, self._activation)(x)
+        x = self.get('img3', tfkl.Dense, 2 * self._stoch_size, None)(dense_output)
         mean, std = tf.split(x, 2, -1)
         std = tf.nn.softplus(std) + 0.1
         stoch = self.get_dist({'mean': mean, 'std': std}).sample()
-        prior = {'mean': mean, 'std': std, 'stoch': stoch}
+        prior = {'mean': mean, 'std': std, 'stoch': stoch, 'dense_output': dense_output}
         return prior
