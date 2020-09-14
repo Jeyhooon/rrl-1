@@ -31,9 +31,9 @@ class ReachEnv(PandaBaseEnv):
         end_eff_coords = self.agent.tcp_pos
         distance = goal_distance(np.array(end_eff_coords), np.array(box_pos))
         goal_reached = np.logical_and(0.0 <= distance, distance <= 0.1)
-        d = np.where(distance < 0.0, 0.0 - distance, distance - 0.1) / 0.1
-        scale = np.sqrt(-2 * np.log(0.1))
-        value = np.where(goal_reached, 1.0, np.exp(-0.5 * (d*scale)**2))
+        # d = np.where(distance < 0.0, 0.0 - distance, distance - 0.1) / 0.1
+        # scale = np.sqrt(-2 * np.log(0.1))
+        value = np.where(goal_reached, 1.0, 0.0)  # np.exp(-0.5 * (d*scale)**2))
         return float(value) if np.isscalar(distance) else value
 
     def _scene_objects(self):
