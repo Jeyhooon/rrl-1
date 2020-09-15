@@ -22,13 +22,15 @@ class KickEnv(PandaBaseEnv):
 
     def _scene_objects(self):
         z_offset = 0.2
+        friction = [0.001, 0.001, 0.0001]
         tray = MujocoObject(object_name='tray',
                             pos=[0.5, 0, z_offset],
-                            quat=[0, 0, 0, 0])
+                            quat=[0, 0, 0, 0],
+                            friction=friction)
         red_box = MujocoPrimitiveObject(obj_name='red_box',
                                         obj_pos=[0.55, 0, z_offset + 0.2],
                                         geom_rgba=[1, 0, 0, 1],
-                                        geom_friction=[0.001, 0.001, 0.0001])
+                                        geom_friction=friction)
         blue_box = MujocoPrimitiveObject(obj_name='blue_box',
                                          obj_pos=[0.7, 0.5, z_offset + 0.2],
                                          geom_rgba=[0, 0, 1, 1])
