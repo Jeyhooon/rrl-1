@@ -55,7 +55,7 @@ class KickEnv(PandaBaseEnv):
         self.agent.set_state(qpos, qvel)
         self.agent.panda.receiveState()
 
-        return self._get_obs()
+        return {'image': self._get_obs()}
 
     def _reward(self):
         red_box_pos = self.scene.sim.data.qpos[9:12]
