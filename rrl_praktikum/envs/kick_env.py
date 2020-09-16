@@ -44,8 +44,8 @@ class KickEnv(PandaBaseEnv):
         qvel = self.scene.init_qvel
 
         # randomize x and y pos of boxes
-        x_pos_red = np.random.uniform(0.45, 0.65, 1)
-        y_pos_red = np.random.uniform(-0.2, 0.2, 1)
+        x_pos_red = np.random.uniform(0.45, 0.55, 1)
+        y_pos_red = np.random.uniform(-0.05, 0.05, 1)
         x_pos_blue = np.random.uniform(0.6, 0.7, 1)
         y_pos_blue = np.random.uniform(0.4, 0.5, 1)  # * np.where(np.random.binomial(1, 0.5), 1, -1)
 
